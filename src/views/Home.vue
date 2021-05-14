@@ -1,224 +1,111 @@
 <template>
   <div class="home">
-    <section class="todoapp">
-      <header class="header">
-        <h1>todos</h1>
-        <input
-          class="new-todo"
-          autofocus
-          autocomplete="off"
-          placeholder="What needs to be done?"
-          v-model="newTodo"
-          @keyup.enter="addTodo"
-        />
-      </header>
-      <section class="main" v-show="todos.length" v-cloak>
-        <input
-          id="toggle-all"
-          class="toggle-all"
-          type="checkbox"
-          v-model="allDone"
-        />
-        <label for="toggle-all"></label>
-        <ul class="todo-list">
-          <li
-            v-for="todo in filteredTodos"
-            class="todo"
-            :key="todo.id"
-            :class="{ completed: todo.completed, editing: todo == editedTodo }"
-          >
-            <div class="view">
-              <input class="toggle" type="checkbox" v-model="todo.completed" />
-              <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
-              <button class="destroy" @click="removeTodo(todo)"></button>
-            </div>
-            <input
-              class="edit"
-              type="text"
-              v-model="todo.title"
-              v-todo-focus="todo == editedTodo"
-              @blur="doneEdit(todo)"
-              @keyup.enter="doneEdit(todo)"
-              @keyup.esc="cancelEdit(todo)"
-            />
-          </li>
-        </ul>
-      </section>
-      <footer class="footer" v-show="todos.length" v-cloak>
-        <span class="todo-count">
-          <strong>{{ remaining }}</strong> {{ remaining | pluralize }} left
-        </span>
-        <ul class="filters">
-          <li>
-            <a href="#/all" :class="{ selected: visibility == 'all' }">All</a>
-          </li>
-          <li>
-            <a href="#/active" :class="{ selected: visibility == 'active' }"
-              >Active</a
-            >
-          </li>
-          <li>
-            <a
-              href="#/completed"
-              :class="{ selected: visibility == 'completed' }"
-              >Completed</a
-            >
-          </li>
-        </ul>
-        <button
-          class="clear-completed"
-          @click="removeCompleted"
-          v-show="todos.length > remaining"
-        >
-          Clear completed
-        </button>
-      </footer>
-    </section>
+    <h1>express + mongoose 实现增删改查</h1>
+    <el-form :inline="true" :model="formInline" class="demo-form-inline">
+      <el-form-item label="姓名">
+        <el-input v-model="formInline.name" placeholder="姓名"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleSubmit">查询</el-button>
+        <el-button type="primary" @click="handleAddClick">添加</el-button>
+      </el-form-item>
+    </el-form>
+
+
+    <el-table
+      :data="tableData"
+      border
+      style="width: 100%">
+      <el-table-column
+        prop="date"
+        label="修改日期"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="name"
+        label="姓名"
+        width="180">
+      </el-table-column>
+      <el-table-column
+        prop="address"
+        label="地址">
+      </el-table-column>
+      <el-table-column
+        label="操作">
+        <template slot-scope="scope">
+          <el-button type="primary" @click="handleEditClick(scope.row)" size="small">编辑</el-button>
+
+          <el-popconfirm title="确定删除吗？" @confirm="handleDelClick(scope.row)">
+           <el-button type="danger" size="small"  slot="reference">删除</el-button>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <detailDialog :visible.sync='detailDialogFlag' :isEdit='isEdit' :info="currInfo"></detailDialog> 
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
-var STORAGE_KEY = "todos-vuejs-2.0";
-var todoStorage = {
-  fetch: function() {
-    var todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-    todos.forEach(function(todo, index) {
-      todo.id = index;
-    });
-    todoStorage.uid = todos.length;
-    return todos;
-  },
-  save: function(todos) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-  }
-};
-
-// visibility filters
-var filters = {
-  all: function(todos) {
-    return todos;
-  },
-  active: function(todos) {
-    return todos.filter(function(todo) {
-      return !todo.completed;
-    });
-  },
-  completed: function(todos) {
-    return todos.filter(function(todo) {
-      return todo.completed;
-    });
-  }
-};
-
-
+import detailDialog from "@/components/detailDialog"
 export default {
   name: 'Home',
   components: {
+    detailDialog
   },
   data(){
     return {
-          todos: todoStorage.fetch(),
-          newTodo: "",
-          editedTodo: null,
-          visibility: "all"
-        }
-  },
-  // watch todos change for localStorage persistence
-  watch: {
-    todos: {
-      handler: function(todos) {
-        todoStorage.save(todos);
+      formInline: {
+        name: ''
       },
-      deep: true
+      tableData: [{
+        date: '2016-05-02',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1518 弄'
+      }, {
+        date: '2016-05-04',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1517 弄'
+      }, {
+        date: '2016-05-01',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1519 弄'
+      }, {
+        date: '2016-05-03',
+        name: '王小虎',
+        address: '上海市普陀区金沙江路 1516 弄'
+      }],
+      detailDialogFlag:false,
+      isEdit:false,
+      currInfo:{}
     }
   },
-
-  // computed properties
-  // http://vuejs.org/guide/computed.html
-  computed: {
-    filteredTodos: function() {
-      return filters[this.visibility](this.todos);
-    },
-    remaining: function() {
-      return filters.active(this.todos).length;
-    },
-    allDone: {
-      get: function() {
-        return this.remaining === 0;
-      },
-      set: function(value) {
-        this.todos.forEach(function(todo) {
-          todo.completed = value;
-        });
-      }
-    }
-  },
-
-  filters: {
-    pluralize: function(n) {
-      return n === 1 ? "item" : "items";
-    }
-  },
-
-  // methods that implement data logic.
-  // note there's no DOM manipulation here at all.
   methods: {
-    addTodo: function() {
-      var value = this.newTodo && this.newTodo.trim();
-      if (!value) {
-        return;
-      }
-      this.todos.push({
-        id: todoStorage.uid++,
-        title: value,
-        completed: false
-      });
-      this.newTodo = "";
+    // 查询
+    handleSubmit(){
+
     },
-
-    removeTodo: function(todo) {
-      this.todos.splice(this.todos.indexOf(todo), 1);
+    // 编辑
+    handleEditClick(){
+      this.isEdit = true
+      // 查询并赋值
+      this.currInfo = {}
+      this.detailDialogFlag = true
     },
-
-    editTodo: function(todo) {
-      this.beforeEditCache = todo.title;
-      this.editedTodo = todo;
-    },
-
-    doneEdit: function(todo) {
-      if (!this.editedTodo) {
-        return;
-      }
-      this.editedTodo = null;
-      todo.title = todo.title.trim();
-      if (!todo.title) {
-        this.removeTodo(todo);
-      }
-    },
-
-    cancelEdit: function(todo) {
-      this.editedTodo = null;
-      todo.title = this.beforeEditCache;
-    },
-
-    removeCompleted: function() {
-      this.todos = filters.active(this.todos);
-    }
-  },
-
-  // a custom directive to wait for the DOM to be updated
-  // before focusing on the input field.
-  // http://vuejs.org/guide/custom-directive.html
-  directives: {
-    "todo-focus": function(el, binding) {
-      if (binding.value) {
-        el.focus();
-      }
+    // 删除
+    handleDelClick(){},
+    // 添加
+    handleAddClick(){
+      this.isEdit = false
+      this.detailDialogFlag = true
     }
   }
 }
 </script>
 <style scoped>
- @import url("https://unpkg.com/todomvc-app-css@2.2.0/index.css");
+.home{
+  max-width: 80%;
+  margin: 0 auto;
+  text-align: left;
+}
 </style>
