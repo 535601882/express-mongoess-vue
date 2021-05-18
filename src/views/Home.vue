@@ -1,12 +1,12 @@
 <template>
   <div class="home">
     <h1>express + mongoose 实现增删改查</h1>
-    <el-form :inline="true" :model="formInline" class="demo-form-inline">
+    <el-form :inline="true" :model="form" class="demo-form-inline">
       <el-form-item label="姓名">
-        <el-input v-model="formInline.name" placeholder="姓名"></el-input>
+        <el-input v-model="form.name" placeholder="姓名"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="handleSubmit">查询</el-button>
+        <el-button type="primary" @click="handleSearchClick">查询</el-button>
         <el-button type="primary" @click="handleAddClick">添加</el-button>
       </el-form-item>
     </el-form>
@@ -18,13 +18,15 @@
       style="width: 100%">
       <el-table-column
         prop="date"
-        label="修改日期"
-        width="180">
+        label="修改日期">
       </el-table-column>
       <el-table-column
         prop="name"
-        label="姓名"
-        width="180">
+        label="姓名">
+      </el-table-column>
+      <el-table-column
+        prop="birthday"
+        label="生日">
       </el-table-column>
       <el-table-column
         prop="address"
@@ -42,12 +44,13 @@
       </el-table-column>
     </el-table>
 
-    <detailDialog :visible.sync='detailDialogFlag' :isEdit='isEdit' :info="currInfo"></detailDialog> 
+    <detailDialog :visible.sync='detailDialogFlag' :isEdit='isEdit' :info="currInfo" @submit="handleAddSubmit"></detailDialog>
   </div>
 </template>
 
 <script>
 import detailDialog from "@/components/detailDialog"
+import api from "@/api"
 export default {
   name: 'Home',
   components: {
@@ -55,49 +58,70 @@ export default {
   },
   data(){
     return {
-      formInline: {
+      form: {
         name: ''
       },
-      tableData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1519 弄'
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1516 弄'
-      }],
+      tableData: [],
       detailDialogFlag:false,
       isEdit:false,
       currInfo:{}
     }
   },
+  created(){
+    this.handleSearchClick()
+  },
   methods: {
     // 查询
-    handleSubmit(){
-
+    handleSearchClick(){
+      let obj = {}
+      if (this.form.name) {
+        obj = Object.assign({},this.form)
+      }
+      api.getUsers(obj).then(res => {
+        this.tableData = res.result
+      })
     },
     // 编辑
-    handleEditClick(){
+    handleEditClick(row){
       this.isEdit = true
       // 查询并赋值
-      this.currInfo = {}
-      this.detailDialogFlag = true
+      api.getUserId({id:row._id}).then(data => {
+        console.log('data',data)
+        if (data.status === 200) {
+          this.currInfo = JSON.parse(JSON.stringify(row))
+          this.detailDialogFlag = true
+        }
+      })
     },
     // 删除
-    handleDelClick(){},
+    handleDelClick(row){
+      api.delUser({id:row._id}).then(res => {
+        if (res.status === 200) {
+          this.handleSearchClick()
+        }
+      })
+    },
     // 添加
     handleAddClick(){
       this.isEdit = false
       this.detailDialogFlag = true
+    },
+    handleAddSubmit(obj){
+      if (this.isEdit) {
+        api.editUser(obj).then(res => {
+          console.log(res)
+        })
+      } else {
+        api.addUser(obj).then(res => {
+          if (res.status === 200) {
+            this.detailDialogFlag = false
+            // 删除成功
+            this.$message.success('添加成功!');
+            // 重新获取
+            this.handleSearchClick()
+          }
+        })
+      }
     }
   }
 }
