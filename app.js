@@ -8,6 +8,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get("/getUsers",database.getUsers)
+app.get("/getUserId",database.getUserId)
 app.post("/addUser",database.addUser)
 app.delete("/delUser",database.delUser)
 app.put("/editUser",database.editUser)

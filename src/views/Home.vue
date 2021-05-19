@@ -104,12 +104,19 @@ export default {
     // 添加
     handleAddClick(){
       this.isEdit = false
+      this.currInfo = {}
       this.detailDialogFlag = true
     },
     handleAddSubmit(obj){
       if (this.isEdit) {
         api.editUser(obj).then(res => {
-          console.log(res)
+          if (res.status === 200) {
+            this.detailDialogFlag = false
+            // 删除成功
+            this.$message.success('修改成功!');
+            // 重新获取
+            this.handleSearchClick()
+          }
         })
       } else {
         api.addUser(obj).then(res => {

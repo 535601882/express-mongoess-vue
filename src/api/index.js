@@ -11,7 +11,7 @@ export default {
   },
   // 改
   editUser(params){
-    return request({ url: `${api}/editUser`, method: 'put', params: params});
+    return request({ url: `${api}/editUser`, method: 'put', data: params});
   },
   // 查
   getUsers(params){

@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="提示"
+    :title="title"
     :visible.sync="dialogVisible"
     v-if="dialogVisible"
     width="30%">
@@ -61,9 +61,11 @@ export default {
   },
   created(){},
   computed:{
+    title(){
+      return this.isEdit ? "编辑" : "新增"
+    },
     dialogVisible:{
       get(){
-        this.isEdit && this.initForm()
         return this.visible
       },
       set(val){
@@ -83,11 +85,15 @@ export default {
   },
   watch:{
     visible(val){
-      if (!val) {
-        this.form = {
-          name:'',
-          birthday:'',
-          address:''
+      if (val) {
+        if(this.isEdit) {
+          this.initForm()
+        } else {
+          this.form = {
+            name:'',
+            birthday:'',
+            address:''
+          }
         }
       }
     }
