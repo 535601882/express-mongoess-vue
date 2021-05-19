@@ -20,5 +20,9 @@ export default {
   // 查
   getUserId(params){
     return request({ url: `${api}/getUserId`, method: 'get', params: params});
+  },
+  // 上传文件
+  uploadImg(params){
+    return request({ url: `${api}/uploadImg`, method: 'post', data: params});
   }
 }

@@ -1,5 +1,8 @@
 //4.有了模型构造函数以后，使用这个构造函数对 users 集合中的数据进行操作(增删改查)
 const User = require("./users")
+const fs = require("fs")
+const path = require("path")
+const multer = require('multer')
 
 class API{
   getUsers(req, res){
@@ -23,7 +26,6 @@ class API{
   }
   getUserId(req, res){
     let response = res
-    console.log(req.query)
     User.findOne({_id: req.query.id},(err, result, res) => {
       if(err) {
         response.send({
@@ -41,7 +43,6 @@ class API{
   }
   addUser(req, res){
     let response = res
-    console.log(req.body)
     User.create(req.body,function(err, res) {
       if (err) {
         response.send({
@@ -75,7 +76,6 @@ class API{
   }
   editUser(req, res){
     let response = res
-    console.log(req.body)
     // model 的 remove 方法可以删除所有匹配查询条件（ conditions ）的文档
     // 更新单独一条文档并且返回给应用层，可以使用 findOneAndUpdate 方法
     User.findByIdAndUpdate(req.body._id, req.body, function (err,ret) {
@@ -91,6 +91,16 @@ class API{
         })
       }
     })
+  }
+  uploadImg(req, res){
+    console.log(JSON.stringify(req.file))
+    let response = res
+    try {
+      res.send(req.file);
+    } catch(error) {
+      console.log(error);
+      res.send(400);
+    }
   }
 }
 const api = new API()
