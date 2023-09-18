@@ -1,50 +1,74 @@
 <template>
   <div class="home">
-    <h1>express + mongoose 实现增删改查</h1>
-    <el-form :inline="true" :model="form" class="demo-form-inline">
-      <el-form-item label="姓名">
-        <el-input v-model="form.name" placeholder="姓名"></el-input>
-      </el-form-item>
-      <el-form-item>
-        <el-button type="primary" @click="handleSearchClick">查询</el-button>
-        <el-button type="primary" @click="handleAddClick">添加</el-button>
-      </el-form-item>
-    </el-form>
+    <el-tabs v-model="activeName">
+      <el-tab-pane label="express + mongoose 实现增删改查" name="1">
+        
+        <el-form :inline="true" :model="form" class="demo-form-inline">
+          <el-form-item label="姓名">
+            <el-input v-model="form.name" placeholder="姓名"></el-input>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="handleSearchClick">查询</el-button>
+            <el-button type="primary" @click="handleAddClick">添加</el-button>
+          </el-form-item>
+        </el-form>
 
 
-    <el-table
-      :data="tableData"
-      border
-      style="width: 100%">
-      <el-table-column
-        prop="date"
-        label="修改日期">
-      </el-table-column>
-      <el-table-column
-        prop="name"
-        label="姓名">
-      </el-table-column>
-      <el-table-column
-        prop="birthday"
-        label="生日">
-      </el-table-column>
-      <el-table-column
-        prop="address"
-        label="地址">
-      </el-table-column>
-      <el-table-column
-        label="操作">
-        <template slot-scope="scope">
-          <el-button type="primary" @click="handleEditClick(scope.row)" size="small">编辑</el-button>
+        <el-table
+          :data="tableData"
+          border
+          style="width: 100%">
+          <el-table-column
+            prop="date"
+            label="修改日期">
+          </el-table-column>
+          <el-table-column
+            prop="name"
+            label="姓名">
+          </el-table-column>
+          <el-table-column
+            prop="birthday"
+            label="生日">
+          </el-table-column>
+          <el-table-column
+            prop="address"
+            label="地址">
+          </el-table-column>
+          <el-table-column
+            label="操作">
+            <template slot-scope="scope">
+              <el-button type="primary" @click="handleEditClick(scope.row)" size="small">编辑</el-button>
 
-          <el-popconfirm title="确定删除吗？" @confirm="handleDelClick(scope.row)">
-           <el-button type="danger" size="small"  slot="reference">删除</el-button>
-          </el-popconfirm>
-        </template>
-      </el-table-column>
-    </el-table>
+              <el-popconfirm title="确定删除吗？" @confirm="handleDelClick(scope.row)">
+              <el-button type="danger" size="small"  slot="reference">删除</el-button>
+              </el-popconfirm>
+            </template>
+          </el-table-column>
+        </el-table>
 
-    <detailDialog :visible.sync='detailDialogFlag' :isEdit='isEdit' :info="currInfo" @submit="handleAddSubmit"></detailDialog>
+        <detailDialog :visible.sync='detailDialogFlag' :isEdit='isEdit' :info="currInfo" @submit="handleAddSubmit"></detailDialog>
+      </el-tab-pane>
+      <el-tab-pane label="测试post请求" name="2">
+        <el-form :model="formPost" label-width="80px">
+          <el-form-item label="姓名">
+            <el-input v-model="formPost.name"></el-input>
+          </el-form-item>
+          <el-form-item label="兴趣">
+            <el-checkbox-group v-model="formPost.interest">
+              <el-checkbox label="足球"></el-checkbox>
+              <el-checkbox label="篮球"></el-checkbox>
+              <el-checkbox label="乒乓球"></el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" @click="formPostSubmit('createPostDemo1')">立即创建 postFormUrlencoded</el-button>
+            <el-button type="primary" @click="formPostSubmit('createPostDemo2')">立即创建 postFormData</el-button>
+            <el-button type="primary" @click="formPostSubmit('createPostDemo3')">立即创建 postApplicationJson</el-button>
+            <el-button type="primary" @click="formPostSubmit('createPostDemo4')">立即创建 get</el-button>
+          </el-form-item>
+        </el-form>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
@@ -61,10 +85,23 @@ export default {
       form: {
         name: ''
       },
+      formPost: {
+        name: "小張",
+        interest: ['足球','篮球'],
+        child: [{
+          name: "小明",
+          interest: ['足球'],
+          child: [{
+            name: "小李",
+            interest: ['篮球'],
+          }]
+        }]
+      },
       tableData: [],
       detailDialogFlag:false,
       isEdit:false,
-      currInfo:{}
+      currInfo:{},
+      activeName: "1"
     }
   },
   created(){
@@ -129,6 +166,13 @@ export default {
           }
         })
       }
+    },
+    // 测试提交
+    formPostSubmit(name) {
+      console.log(this.formPost)
+      api[name](this.formPost).then(res => {
+        console.log(res)
+      })
     }
   }
 }
